@@ -76,10 +76,10 @@ CHECKENVCMD=checkenv.sh
 REGISTRYSERVER=
 REGISTRYPROJECTNAME=goharbor
 DEVFLAG=true
-NOTARYFLAG=false
-CLAIRFLAG=false
+NOTARYFLAG=true
+CLAIRFLAG=true
 HTTPPROXY=
-BUILDBIN=false
+BUILDBIN=true
 MIGRATORFLAG=false
 NPM_REGISTRY=https://registry.npmjs.org
 # enable/disable chart repo supporting
@@ -89,7 +89,7 @@ CHARTFLAG=false
 # for docker image tag
 VERSIONTAG=dev
 # for base docker image tag
-BASEIMAGETAG=dev
+BASEIMAGETAG=3.0_x86_64
 # for harbor package name
 PKGVERSIONTAG=dev
 
@@ -329,8 +329,8 @@ build_base_docker:
 	@for name in chartserver clair clair-adapter core db jobservice log nginx notary-server notary-signer portal prepare redis registry registryctl; do \
 		echo $$name ; \
 		$(DOCKERBUILD) --pull -f $(MAKEFILEPATH_PHOTON)/$$name/Dockerfile.base -t goharbor/harbor-$$name-base:$(BASEIMAGETAG) . ; \
-		$(PUSHSCRIPTPATH)/$(PUSHSCRIPTNAME) goharbor/harbor-$$name-base:$(BASEIMAGETAG) $(REGISTRYUSER) $(REGISTRYPASSWORD) ; \
 	done
+		#$(PUSHSCRIPTPATH)/$(PUSHSCRIPTNAME) goharbor/harbor-$$name-base:$(BASEIMAGETAG) $(REGISTRYUSER) $(REGISTRYPASSWORD) ; \
 
 install: compile build prepare start
 
