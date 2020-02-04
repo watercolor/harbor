@@ -76,8 +76,8 @@ CHECKENVCMD=checkenv.sh
 REGISTRYSERVER=
 REGISTRYPROJECTNAME=goharbor
 DEVFLAG=true
-NOTARYFLAG=true
-CLAIRFLAG=true
+NOTARYFLAG=false
+CLAIRFLAG=false
 HTTPPROXY=
 BUILDBIN=true
 MIGRATORFLAG=false
@@ -87,11 +87,12 @@ CHARTFLAG=false
 
 # version prepare
 # for docker image tag
-VERSIONTAG=dev
+VERSIONTAG=v1.10-arm
 # for base docker image tag
-BASEIMAGETAG=3.0_x86_64
+BASEIMAGETAG=3.0_arm
+#BASEIMAGETAG=3.0_x86_64
 # for harbor package name
-PKGVERSIONTAG=dev
+PKGVERSIONTAG=v1.10-arm
 
 PREPARE_VERSION_NAME=versions
 
@@ -247,7 +248,8 @@ DOCKERSAVE_PARA=$(DOCKER_IMAGE_NAME_PREPARE):$(VERSIONTAG) \
 		$(DOCKERIMAGENAME_JOBSERVICE):$(VERSIONTAG) \
 		$(DOCKERIMAGENAME_REGCTL):$(VERSIONTAG) \
 		goharbor/redis-photon:$(REDISVERSION) \
-		goharbor/nginx-photon:$(NGINXVERSION) goharbor/registry-photon:$(REGISTRYVERSION)-$(VERSIONTAG)
+		goharbor/nginx-photon:$(NGINXVERSION) \
+		goharbor/registry-photon:$(REGISTRYVERSION)-$(VERSIONTAG)
 
 PACKAGE_OFFLINE_PARA=-zcvf harbor-offline-installer-$(PKGVERSIONTAG).tgz \
 					$(HARBORPKG)/$(DOCKERIMGFILE).$(VERSIONTAG).tar.gz \
@@ -289,22 +291,22 @@ check_environment:
 compile_core:
 	@echo "compiling binary for core (golang image)..."
 	@echo $(GOBUILDPATH)
-	@$(DOCKERCMD) run --rm -v $(BUILDPATH):$(GOBUILDPATH) -w $(GOBUILDPATH_CORE) $(GOBUILDIMAGE) $(GOIMAGEBUILD_CORE) -o $(GOBUILDMAKEPATH_CORE)/$(CORE_BINARYNAME)
+	@$(DOCKERCMD) run --rm --env GOPROXY="https://mirrors.aliyun.com/goproxy/" --env GOARCH=arm64 -v $(BUILDPATH):$(GOBUILDPATH) -w $(GOBUILDPATH_CORE) $(GOBUILDIMAGE) $(GOIMAGEBUILD_CORE) -o $(GOBUILDMAKEPATH_CORE)/$(CORE_BINARYNAME)
 	@echo "Done."
 
 compile_jobservice:
 	@echo "compiling binary for jobservice (golang image)..."
-	@$(DOCKERCMD) run --rm -v $(BUILDPATH):$(GOBUILDPATH) -w $(GOBUILDPATH_JOBSERVICE) $(GOBUILDIMAGE) $(GOIMAGEBUILD_COMMON) -o $(GOBUILDMAKEPATH_JOBSERVICE)/$(JOBSERVICEBINARYNAME)
+	@$(DOCKERCMD) run --rm --env GOPROXY="https://mirrors.aliyun.com/goproxy/" --env GOARCH=arm64 -v $(BUILDPATH):$(GOBUILDPATH) -w $(GOBUILDPATH_JOBSERVICE) $(GOBUILDIMAGE) $(GOIMAGEBUILD_COMMON) -o $(GOBUILDMAKEPATH_JOBSERVICE)/$(JOBSERVICEBINARYNAME)
 	@echo "Done."
 
 compile_registryctl:
 	@echo "compiling binary for harbor registry controller (golang image)..."
-	@$(DOCKERCMD) run --rm -v $(BUILDPATH):$(GOBUILDPATH) -w $(GOBUILDPATH_REGISTRYCTL) $(GOBUILDIMAGE) $(GOIMAGEBUILD_COMMON) -o $(GOBUILDMAKEPATH_REGISTRYCTL)/$(REGISTRYCTLBINARYNAME)
+	@$(DOCKERCMD) run --rm --env GOPROXY="https://mirrors.aliyun.com/goproxy/" --env GOARCH=arm64 -v $(BUILDPATH):$(GOBUILDPATH) -w $(GOBUILDPATH_REGISTRYCTL) $(GOBUILDIMAGE) $(GOIMAGEBUILD_COMMON) -o $(GOBUILDMAKEPATH_REGISTRYCTL)/$(REGISTRYCTLBINARYNAME)
 	@echo "Done."
 
 compile_notary_migrate_patch:
 	@echo "compiling binary for migrate patch (golang image)..."
-	@$(DOCKERCMD) run --rm -v $(BUILDPATH):$(GOBUILDPATH) -w $(GOBUILDPATH_MIGRATEPATCH) $(GOBUILDIMAGE) $(GOIMAGEBUILD_COMMON) -o $(GOBUILDMAKEPATH_NOTARY)/$(MIGRATEPATCHBINARYNAME)
+	@$(DOCKERCMD) run --rm --env GOPROXY="https://mirrors.aliyun.com/goproxy/" --env GOARCH=arm64 -v $(BUILDPATH):$(GOBUILDPATH) -w $(GOBUILDPATH_MIGRATEPATCH) $(GOBUILDIMAGE) $(GOIMAGEBUILD_COMMON) -o $(GOBUILDMAKEPATH_NOTARY)/$(MIGRATEPATCHBINARYNAME)
 	@echo "Done."
 
 compile: check_environment versions_prepare compile_core compile_jobservice compile_registryctl compile_notary_migrate_patch
@@ -328,7 +330,7 @@ build:
 build_base_docker:
 	@for name in chartserver clair clair-adapter core db jobservice log nginx notary-server notary-signer portal prepare redis registry registryctl; do \
 		echo $$name ; \
-		$(DOCKERBUILD) --pull -f $(MAKEFILEPATH_PHOTON)/$$name/Dockerfile.base -t goharbor/harbor-$$name-base:$(BASEIMAGETAG) . ; \
+		$(DOCKERBUILD) -f $(MAKEFILEPATH_PHOTON)/$$name/Dockerfile.base -t goharbor/harbor-$$name-base:$(BASEIMAGETAG) . ; \
 	done
 		#$(PUSHSCRIPTPATH)/$(PUSHSCRIPTNAME) goharbor/harbor-$$name-base:$(BASEIMAGETAG) $(REGISTRYUSER) $(REGISTRYPASSWORD) ; \
 
@@ -347,13 +349,15 @@ package_online: update_prepare_version
 	@rm -rf $(HARBORPKG)
 	@echo "Done."
 
-package_offline: update_prepare_version compile build
+#package_offline: update_prepare_version compile build
+package_offline:
 
 	@echo "packing offline package ..."
 	@cp -r make $(HARBORPKG)
 	@cp LICENSE $(HARBORPKG)/LICENSE
 
 	@echo "saving harbor docker image"
+	@echo $(DOCKERSAVE_PARA)
 	@$(DOCKERSAVE) $(DOCKERSAVE_PARA) > $(HARBORPKG)/$(DOCKERIMGFILE).$(VERSIONTAG).tar
 	@gzip $(HARBORPKG)/$(DOCKERIMGFILE).$(VERSIONTAG).tar
 

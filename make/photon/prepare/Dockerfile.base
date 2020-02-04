@@ -1,4 +1,4 @@
-FROM photon:3.0
+FROM photon:3.0-arm
 
 RUN tdnf install -y python3 \
     && tdnf install -y python3-pip
