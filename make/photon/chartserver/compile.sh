@@ -16,8 +16,15 @@ VERSION="$2"
 MAIN_GO_PATH="$3"
 BIN_NAME="$4"
 
-#Get the source code
-git clone $GIT_PATH src_code
+if [[ -e $(pwd)/bin/src_code ]]; then
+    echo "source code exist, move to $(pwd)/src_code"
+    mv $(pwd)/bin/src_code $(pwd)/
+    # assume src_code if exist, has vendor
+    export GOFLAGS=-mod=vendor GOOS=linux GO111MODULE=on
+else
+    #Get the source code
+    git clone $GIT_PATH src_code
+fi
 ls
 SRC_PATH=$(pwd)/src_code
 set -e

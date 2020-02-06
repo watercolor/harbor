@@ -17,7 +17,7 @@ GIT_PATH="$2"
 CODE_VERSION="$3"
 MAIN_GO_PATH="$4"
 BIN_NAME="$5"
-
+BUILDENV="--env GOARCH=arm64 --env GOPROXY=https://goproxy.io"
 set -e
 
 cd `dirname $0`
@@ -25,9 +25,13 @@ cur=$PWD
 
 mkdir -p binary
 rm -rf binary/$BIN_NAME || true
+if [[ -e src_code ]]; then
+    echo "Copy chart src_code to binary/src_code"
+    cp -rf src_code binary
+fi
 cp compile.sh binary/
 
-docker run -it --rm -v $cur/binary:/go/bin --name golang_code_builder $GOLANG_IMAGE /bin/bash /go/bin/compile.sh $GIT_PATH $CODE_VERSION $MAIN_GO_PATH $BIN_NAME
+docker run -it --rm -v $cur/binary:/go/bin $BUILDENV --name golang_code_builder $GOLANG_IMAGE /bin/bash /go/bin/compile.sh $GIT_PATH $CODE_VERSION $MAIN_GO_PATH $BIN_NAME
 
 #Clear
 #docker rm -f golang_code_builder
