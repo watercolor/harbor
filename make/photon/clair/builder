@@ -20,7 +20,13 @@ cur=$PWD
 
 # the temp folder to store distribution source code...
 TEMP=`mktemp -d /$TMPDIR/clair.XXXXXX`
-git clone -b $VERSION --single-branch https://github.com/quay/clair.git $TEMP
+if [[ -e ./clair ]]; then
+    echo "Copy Clair sources ./clair to $TEMP"
+    cp -rf ./clair/* $TEMP
+else
+    echo "Git clone Clair sources to $TEMP"
+    git clone -b $VERSION --single-branch https://github.com/quay/clair.git $TEMP
+fi
 
 echo 'build the clair binary bases on the golang:1.12.12'
 cp Dockerfile.binary $TEMP

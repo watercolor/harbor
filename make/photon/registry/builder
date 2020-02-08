@@ -20,7 +20,13 @@ cur=$PWD
 
 # the temp folder to store distribution source code...
 TEMP=`mktemp -d ${TMPDIR-/tmp}/distribution.XXXXXX`
-git clone -b $VERSION https://github.com/docker/distribution.git $TEMP
+if [[ -e distribution/ ]]; then
+    echo "Copy registry source code to $TEMP"
+    cp -rf distribution/ $TEMP
+else
+    echo "Clone registry source code to $TEMP"
+    git clone -b $VERSION https://github.com/docker/distribution.git $TEMP
+fi
 
 # add patch 2879
 echo 'add patch https://github.com/docker/distribution/pull/2879 ...'

@@ -6,6 +6,8 @@ RUN test -n "$NOTARY_VERSION"
 RUN test -n "$MIGRATE_VERSION"
 ENV NOTARYPKG github.com/theupdateframework/notary
 ENV MIGRATEPKG github.com/golang-migrate/migrate
+ENV GOPROXY https://goproxy.io
+ENV GOARCH arm64
 
 RUN git clone -b $NOTARY_VERSION https://github.com/theupdateframework/notary.git /go/src/${NOTARYPKG}
 WORKDIR /go/src/${NOTARYPKG}

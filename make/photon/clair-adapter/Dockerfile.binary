@@ -1,4 +1,6 @@
 FROM golang:1.12.12
+ENV GOARCH arm64
+ENV GOPROXY https://goproxy.io
 
 ADD .   /go/src/github.com/goharbor/harbor-scanner-clair/
 WORKDIR /go/src/github.com/goharbor/harbor-scanner-clair/

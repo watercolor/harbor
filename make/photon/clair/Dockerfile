@@ -3,7 +3,7 @@ FROM goharbor/harbor-clair-base:${harbor_base_image_version}
 
 COPY ./make/photon/clair/binary/clair /home/clair/
 COPY ./make/photon/clair/docker-entrypoint.sh /home/clair/
-COPY ./make/photon/clair/dumb-init /home/clair/
+COPY ./make/photon/clair/dumb-init_arm64 /home/clair/dumb-init
 COPY ./make/photon/common/install_cert.sh /home/clair/
 
 VOLUME /config
